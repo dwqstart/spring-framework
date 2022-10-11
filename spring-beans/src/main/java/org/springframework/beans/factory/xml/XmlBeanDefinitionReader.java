@@ -387,7 +387,10 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
+			// 此时就获取到了 Document ，这里面就包括了所有的节点信息，也就是我们的 bean 的定义
 			Document doc = doLoadDocument(inputSource, resource);
+			// 通过 doc 与 资源信息开始定义 bean 等待注册，这个注册 bean 的过程是需要先定义 bean 的内容，
+			// 每一个 bean 都需要用 BeanDefinitionHolder 封装
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -508,6 +511,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		//解析
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}

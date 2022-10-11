@@ -220,15 +220,12 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
 		ResourceLoader resourceLoader = getResourceLoader();
-		if (resourceLoader == null) {
-			throw new BeanDefinitionStoreException(
-					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
-		}
-
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				// 获取资源文件（资源加载器从路径识别资源文件）
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				// 根据资源文件加载 bean
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);

@@ -80,6 +80,9 @@ public class ClassPathXmlApplicationContextTests {
 		ctx.close();
 	}
 
+	/**
+	 * refresh和close都调用了容器中对象都destroy方法
+	 */
 	@Test
 	void multipleConfigLocations() {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(

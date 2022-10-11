@@ -545,13 +545,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
-
 			// Prepare this context for refreshing.
-			// 设置容器初始化
+			// 设置容器初始化 验证properties
 			prepareRefresh();
-
 			// Tell the subclass to refresh the internal bean factory.
-			// 让子类进行 BeanFactory 初始化，并且将 Bean 信息 转换为 BeanFinition，最后注册到容器中
+			// 让子类进行 BeanFactory 初始化，并且将 Bean 信息 转换为 BeanDefinition，最后注册到容器中
 			// 注意，此时 Bean 还没有初始化，只是配置信息都提取出来了
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
@@ -564,6 +562,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 				// Invoke factory processors registered as beans in the context.
+				//`Spring` 容器允许在实例化 `bean` 前，读取 `bean`信息和修改它的属性。
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
@@ -571,6 +570,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				beanPostProcess.end();
 
 				// Initialize message source for this context.
+				//初始化此上下文的消息源
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
@@ -583,6 +583,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				//完成 `bean` 容器的初始化，实例化所有剩余的(非惰性初始化)单例
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
@@ -608,6 +609,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			finally {
 				// Reset common introspection caches in Spring's core, since we
 				// might not ever need metadata for singleton beans anymore...
+				//清除缓存
 				resetCommonCaches();
 				contextRefresh.end();
 			}
@@ -638,6 +640,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		//验证properties
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...

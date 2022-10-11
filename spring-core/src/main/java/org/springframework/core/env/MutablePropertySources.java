@@ -40,7 +40,7 @@ import org.springframework.lang.Nullable;
  * @see PropertySourcesPropertyResolver
  */
 public class MutablePropertySources implements PropertySources {
-
+	//使用CopyOnWriteArrayList存储属性
 	private final List<PropertySource<?>> propertySourceList = new CopyOnWriteArrayList<>();
 
 
