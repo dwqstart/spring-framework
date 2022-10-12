@@ -60,7 +60,9 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	@Override
 	@Nullable
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 实际自定义标签解析器调用的方法，在 parseInternal 方法中，调用了我们重载的方法
 		AbstractBeanDefinition definition = parseInternal(element, parserContext);
+		//从 `AbstractBeanDefinition` 转换成 `BeanDefinitionHolder` ，然后进行注册
 		if (definition != null && !parserContext.isNested()) {
 			try {
 				String id = resolveId(element, definition, parserContext);

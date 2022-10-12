@@ -70,8 +70,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 寻找解析器并进行解析操作,就是我们之前在 `init()` 方法中，注册到 `Spring` 容器的解析器。
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
-		return (parser != null ? parser.parse(element, parserContext) : null);
+		return (parser != null ? parser.parse(element, parserContext) : null);// 真正解析调用的方法
 	}
 
 	/**

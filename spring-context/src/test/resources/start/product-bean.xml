@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:myname="http://vip-augus.github.io/schema/product"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	    http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://vip-augus.github.io/schema/product
+	   	http://vip-augus.github.io/schema/product.xsd">
+
+	<!-- 自定义标签使用 -->
+	<myname:product id="product" productId="1" name="Apple" unit="台"/>
+</beans>

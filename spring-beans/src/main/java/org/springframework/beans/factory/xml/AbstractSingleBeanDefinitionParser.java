@@ -57,6 +57,7 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 	 * @throws IllegalStateException if the bean {@link Class} returned from
 	 * {@link #getBeanClass(org.w3c.dom.Element)} is {@code null}
 	 * @see #doParse
+	 * 进行了一系列的数据准备，包括了 `beanClass`、 `class`、 `lazyInit` 等属性的准备
 	 */
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
@@ -85,6 +86,7 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 			// Default-lazy-init applies to custom bean definitions as well.
 			builder.setLazyInit(true);
 		}
+		//在这里调用了自定义的解析方法
 		doParse(element, parserContext, builder);
 		return builder.getBeanDefinition();
 	}
