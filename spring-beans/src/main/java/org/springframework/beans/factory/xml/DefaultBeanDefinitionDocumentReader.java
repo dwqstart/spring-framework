@@ -173,6 +173,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				Node node = nl.item(i);
 				if (node instanceof Element) {
 					Element ele = (Element) node;
+					//如果是默认标签，也就是namespaceURI是http://www.springframework.org/schema/beans的标签
 					if (delegate.isDefaultNamespace(ele)) {
 						//遍历每个节点
 						parseDefaultElement(ele, delegate);
@@ -306,11 +307,14 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * and registering it with the registry.
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
+		//委托给BeanDefinitionParserDelegate解析标签 //解析属性标签存储到AbstractBeanDefinition
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
-			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
+
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);//主要用来完成自定义标签元素的解析
 			try {
 				// Register the final decorated instance.
+				//需要往容器的`beanDefinitionMap` 注册表注册 `bean` 信息
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
 			catch (BeanDefinitionStoreException ex) {

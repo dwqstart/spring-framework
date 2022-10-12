@@ -434,7 +434,7 @@ public class BeanDefinitionParserDelegate {
 			// 内部 usedNames 是一个 HashSet，将会存储加载过的 name 和 aliases
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-		// 将公共属性放入 AbstractBeanDefinition，具体实现在子类 GenericBeanDefinition
+		// 解析bean标签，将公共属性放入 AbstractBeanDefinition，具体实现在子类 GenericBeanDefinition
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -498,7 +498,7 @@ public class BeanDefinitionParserDelegate {
 	 * Parse the bean definition itself, without regard to name or aliases. May return
 	 * {@code null} if problems occurred during the parsing of the bean definition.
 	 */
-	//对标签中其它属性的解析
+	//对bean标签中属性的解析
 	@Nullable
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
@@ -517,14 +517,15 @@ public class BeanDefinitionParserDelegate {
 		try {
 			//返回的是子类GenericBeanDefinition
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			//解析scope、lazy-init、depends-on、destroy-method等属性
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
-
+			//解析meta标签
 			parseMetaElements(ele, bd);
+			//解析 lookup-method 属性 获取器注入
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
-
+			//解析constructor-arg属性
 			parseConstructorArgElements(ele, bd);
 			parsePropertyElements(ele, bd);
 			parseQualifierElements(ele, bd);
@@ -783,14 +784,14 @@ public class BeanDefinitionParserDelegate {
 		String indexAttr = ele.getAttribute(INDEX_ATTRIBUTE);
 		String typeAttr = ele.getAttribute(TYPE_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
-		if (StringUtils.hasLength(indexAttr)) {
+		if (StringUtils.hasLength(indexAttr)) {//如果指定index属性
 			try {
 				int index = Integer.parseInt(indexAttr);
 				if (index < 0) {
 					error("'index' cannot be lower than 0", ele);
 				}
 				else {
-					try {
+					try {//把constructor-arg中的元素存储到ValueHolder对象中
 						this.parseState.push(new ConstructorArgumentEntry(index));
 						Object value = parsePropertyValue(ele, bd, null);
 						ConstructorArgumentValues.ValueHolder valueHolder = new ConstructorArgumentValues.ValueHolder(value);
@@ -804,7 +805,8 @@ public class BeanDefinitionParserDelegate {
 						if (bd.getConstructorArgumentValues().hasIndexedArgumentValue(index)) {
 							error("Ambiguous constructor-arg entries for index " + index, ele);
 						}
-						else {
+						else {//`addIndexedArgumentValue` 方法，将解析后的 `value` 添加到当前`BeanDefinition`
+							// 的 `ConstructorArgumentValues` 的`indexedArgumentValues` 属性中
 							bd.getConstructorArgumentValues().addIndexedArgumentValue(index, valueHolder);
 						}
 					}
@@ -816,7 +818,7 @@ public class BeanDefinitionParserDelegate {
 			catch (NumberFormatException ex) {
 				error("Attribute 'index' of tag 'constructor-arg' must be an integer", ele);
 			}
-		}
+		}//如果没有指定index属性，则把解析出来的信息放到BeanDefinition的ConstructorArgumentValues的genericArgumentValues
 		else {
 			try {
 				this.parseState.push(new ConstructorArgumentEntry());
