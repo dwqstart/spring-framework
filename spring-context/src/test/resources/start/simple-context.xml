@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:tx="http://www.springframework.org/schema/cache"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
@@ -10,5 +9,7 @@
 		<constructor-arg value="someNonExistentFile.xml"/>
 	</bean>
 
-	<tx:annotation-driven/>
+	<bean name="carFactoryBean" class="start.bean.factorybean.CarFactoryBean">
+		<property name="carInfo" value="跑车,300000,400"></property>
+	</bean>
 </beans>

@@ -330,6 +330,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					//第二个参数的回调接口，接口是 org.springframework.beans.factory.ObjectFactory#getObject
+					// 接口实现的方法是 createBean(beanName, mbd, args)
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
@@ -341,7 +343,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							destroySingleton(beanName);
 							throw ex;
 						}
-					});
+					});//获取的bean可能是bean实例也可能是BeanFactory实例，需进一步处理
 					beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
 
@@ -1844,12 +1846,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected Object getObjectForBeanInstance(
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
-
 		// Don't let calling code try to dereference the factory if the bean isn't a factory.
+		//如果带有&前缀
 		if (BeanFactoryUtils.isFactoryDereference(name)) {
+			//如果是nullbean
 			if (beanInstance instanceof NullBean) {
 				return beanInstance;
-			}
+			}//如果不是FactoryBean实现类，报错
 			if (!(beanInstance instanceof FactoryBean)) {
 				throw new BeanIsNotAFactoryException(beanName, beanInstance.getClass());
 			}
@@ -1865,12 +1868,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (!(beanInstance instanceof FactoryBean)) {
 			return beanInstance;
 		}
-
+		//到这就是没有带&前缀并且是FactoryBean的实现类
 		Object object = null;
 		if (mbd != null) {
 			mbd.isFactoryBean = true;
 		}
 		else {
+			//先从缓存中获取
 			object = getCachedObjectForFactoryBean(beanName);
 		}
 		if (object == null) {
@@ -1878,8 +1882,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			FactoryBean<?> factory = (FactoryBean<?>) beanInstance;
 			// Caches object obtained from FactoryBean if it is a singleton.
 			if (mbd == null && containsBeanDefinition(beanName)) {
+				//从单例缓存中获取
 				mbd = getMergedLocalBeanDefinition(beanName);
-			}
+			}//是否是用户自定义的工厂bean
 			boolean synthetic = (mbd != null && mbd.isSynthetic());
 			object = getObjectFromFactoryBean(factory, beanName, !synthetic);
 		}
@@ -1923,6 +1928,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @see RootBeanDefinition#getDependsOn
 	 * @see #registerDisposableBean
 	 * @see #registerDependentBean
+	 * 除了通过 `destroy-method` 属性配置销毁方法外，
+	 * 还可以注册后处理器 `DestructionAwareBeanPostProcessor` 来统一处理 `bean` 的销毁方法
 	 */
 	protected void registerDisposableBeanIfNecessary(String beanName, Object bean, RootBeanDefinition mbd) {
 		AccessControlContext acc = (System.getSecurityManager() != null ? getAccessControlContext() : null);
