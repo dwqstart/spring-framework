@@ -452,6 +452,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			//会去判断当前bean是否在 earlyProxyReferences，如果在则表示已经提前进行过 AO P了，无需再次进行 AOP。
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -587,7 +588,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 根据指定 bean 使用对应的策略创建新的实例 例如跟进方法去看，有工厂方法，构造函数自动注入，简单初始化
 			// 做的是实例化 `bean`，然后返回 `BeanWrapper`
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
-		}
+		}//获得原始 bean，并没有属性
 		Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
@@ -611,7 +612,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
-		// 是否需要提前曝光，用来解决循环依赖时使用
+		// 是否需要提前曝光，`mbd` 是否是单例 该容器是否允许循环依赖 判断该 `bean` 是否在创建中
+		// '解决循环依赖'
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
@@ -619,6 +621,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}// 第二个参数是回调接口，实现的功能是将切面动态织入 bean
+			// '解决循环依赖' 它会将需要提前曝光的单例加入到缓存中，将单例的 `beanName` 和 `beanFactory` 加入到缓存，在之后需要用到的时候，直接从缓存中取出来。
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));//在 `bean` 初始化完成前将创建实例的 `ObjectFactory` 加入单例工厂
 		}
 
@@ -626,6 +629,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		try {// 对 bean 进行填充，将各个属性值注入
 			// 如果存在对其它 bean 的依赖，将会递归初始化依赖的 bean
+			// '解决循环依赖'
 			populateBean(beanName, mbd, instanceWrapper);
 			// 调用初始化方法，例如 init-method
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
@@ -1730,7 +1734,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						throw new IllegalArgumentException("Autowire marker for property without write method: " + pv);
 					}
 					originalValue = new DependencyDescriptor(new MethodParameter(writeMethod, 0), true);
-				}
+				}//解析参数，如果是引用对象，将会进行提前加载，最后会调用doGetBean方法实例化bean
 				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);
 				Object convertedValue = resolvedValue;
 				boolean convertible = bw.isWritableProperty(propertyName) &&

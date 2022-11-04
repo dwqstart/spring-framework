@@ -73,13 +73,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	/** Maximum number of suppressed exceptions to preserve. */
 	private static final int SUPPRESSED_EXCEPTIONS_LIMIT = 100;
 
-
+	//第一级缓存〈也叫单例池）：存放已经经历了完整生命周期的Bean对象
 	/** Cache of singleton objects: bean name to bean instance. */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
-
+	// 第三级缓存: 存放可以生成Bean的工厂
 	/** Cache of singleton factories: bean name to ObjectFactory. */
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
-
+	// 第二级缓存:存放早期暴露出来的Bean对象，Bean的生命周期未结束（属性还未填充完整）
 	/** Cache of early singleton objects: bean name to bean instance. */
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
@@ -154,9 +154,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(singletonFactory, "Singleton factory must not be null");
 		synchronized (this.singletonObjects) {
+			// 判断 singletonObjects 不存在 beanName
 			if (!this.singletonObjects.containsKey(beanName)) {
+				// 放入 beanName -> beanFactory，到时在 getSingleton() 获取单例时，可直接获取创建对应 bean 的工厂，解决循环依赖
 				this.singletonFactories.put(beanName, singletonFactory);
+				// 从提前曝光的缓存中移除（不管存不存在）
 				this.earlySingletonObjects.remove(beanName);
+				// 往注册缓存中添加 beanName
 				this.registeredSingletons.add(beanName);
 			}
 		}
@@ -198,7 +202,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();
 								//当一个单例 `bean`  被放入到这 `early` 单例缓存后，
-								// 就要从 `singletonFactories` 中移除，两者是互斥的，主要用来解决循环依赖的问题
+								// 就要从 `singletonFactories` 中移除，两者是互斥的
+								// '解决循环依赖' 从三级缓存中移除 放入二级缓存
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}

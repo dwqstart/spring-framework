@@ -1,6 +1,8 @@
 package start.bean.factorybean;
 
-public class Car {
+import org.springframework.beans.factory.config.BeanPostProcessor;
+
+public class Car implements BeanPostProcessor {
 	 private String brand;
 	 private String price;
 	 private String speed;
